@@ -18,7 +18,7 @@ public class EconomyCommand extends BaseCommand {
     }
 
     @Default
-    @CommandPermission("crashclaim.user.checkclaimblocks")
+    @CommandPermission("crashclaimeconomy.user.checkclaimblocks")
     public void onBalance(Player player){
         provider.getBalance(player.getUniqueId(), (bal) -> {
             player.sendMessage(Localization.ECONOMY__CHECK_SELF_BALANCE.getMessage(player,
@@ -28,7 +28,7 @@ public class EconomyCommand extends BaseCommand {
 
     @Subcommand("check")
     @CommandCompletion("@players")
-    @CommandPermission("crashclaim.admin.checkclaimblocks")
+    @CommandPermission("crashclaimeconomy.admin.checkclaimblocks")
     public void onBalance(CommandSender sender, OfflinePlayer player){
         provider.getBalance(player.getUniqueId(), (bal) -> {
             sender.sendMessage(Localization.ECONOMY__CHECK_OTHER_BALANCE.getMessage(null,
@@ -39,7 +39,7 @@ public class EconomyCommand extends BaseCommand {
 
     @Subcommand("add")
     @CommandCompletion("@players @nothing")
-    @CommandPermission("crashclaim.admin.addclaimblocks")
+    @CommandPermission("crashclaimeconomy.admin.addclaimblocks")
     public void onAdd(CommandSender sender, OfflinePlayer player, int amount){
         provider.makeTransaction(player.getUniqueId(), TransactionType.DEPOSIT, "ClaimBlock Admin Add", amount, (transactionRecipe) -> {
             if (transactionRecipe.transactionSuccess()){
@@ -57,7 +57,7 @@ public class EconomyCommand extends BaseCommand {
 
     @Subcommand("remove")
     @CommandCompletion("@players @nothing")
-    @CommandPermission("crashclaim.admin.removeclaimblocks")
+    @CommandPermission("crashclaimeconomy.admin.removeclaimblocks")
     public void onRemove(CommandSender sender, OfflinePlayer player, int amount){
         provider.makeTransaction(player.getUniqueId(), TransactionType.WITHDRAW, "ClaimBlock Admin Remove", amount, (transactionRecipe) -> {
             if (transactionRecipe.transactionSuccess()){

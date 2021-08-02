@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public enum Localization {
-    ECONOMY__CHECK_SELF_BALANCE("<green>ClaimBlock Balance: <yellow><balance>"),
-    ECONOMY__CHECK_OTHER_BALANCE("<green>ClaimBlock Balance for <gold><username>: <yellow><balance>"),
+    ECONOMY__CHECK_SELF_BALANCE("<gold>ClaimBlock Balance: <yellow><balance>"),
+    ECONOMY__CHECK_OTHER_BALANCE("<gold>ClaimBlock Balance for <green><username><gold>: <yellow><balance>"),
     ECONOMY__ADD_OTHER("<green>Successfully added <yellow><balance> <green>ClaimBlocks to <gold><username>"),
     ECONOMY__ADD_OTHER_ERROR("<red>Failed to add <yellow><balance> <red>ClaimBlocks to <gold><username><red> reason: <error>"),
     ECONOMY__REMOVE_OTHER("<green>Successfully removed <yellow><balance> <green>ClaimBlocks from <gold><username>"),
