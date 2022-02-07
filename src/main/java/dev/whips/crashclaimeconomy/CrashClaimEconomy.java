@@ -47,6 +47,10 @@ public class CrashClaimEconomy extends JavaPlugin {
             rewardManager = new RewardManager(this, economyManager.getProvider());
         }
 
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null){
+            new CrashClaimEconomyExpansion().register();
+        }
+
         Bukkit.getPluginManager().registerEvents(rewardManager, this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
     }
@@ -95,5 +99,9 @@ public class CrashClaimEconomy extends JavaPlugin {
 
     public DatabaseManager getDatabaseManager() {
         return databaseManager;
+    }
+
+    public EconomyManager getEconomyManager() {
+        return economyManager;
     }
 }
