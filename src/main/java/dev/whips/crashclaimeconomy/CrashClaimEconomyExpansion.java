@@ -29,7 +29,7 @@ public class CrashClaimEconomyExpansion extends PlaceholderExpansion {
             CrashClaimEconomy.getInstance().getEconomyManager()
                     .getProvider()
                     .getBalance(player.getUniqueId(), balance::set);
-            return (balance.get())+"";
+            return ((int) balance.get())+"";
         }
         return null;
     }
