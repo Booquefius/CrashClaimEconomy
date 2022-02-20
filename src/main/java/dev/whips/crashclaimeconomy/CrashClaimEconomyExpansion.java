@@ -1,5 +1,6 @@
 package dev.whips.crashclaimeconomy;
 
+import dev.whips.crashclaimeconomy.localization.Localization;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -25,10 +26,11 @@ public class CrashClaimEconomyExpansion extends PlaceholderExpansion {
     @Override
     public String onPlaceholderRequest(Player player, @NotNull String params) {
         if (params.equalsIgnoreCase("balance")){
-            AtomicReference<Double> balance = new AtomicReference<>(0.0);
-            CrashClaimEconomy.getInstance().getEconomyManager()
+            AtomicReference<Integer> balance = new AtomicReference<>(0);
+            CrashClaimEconomy.getInstance()
+                    .getEconomyManager()
                     .getProvider()
-                    .getBalance(player.getUniqueId(), balance::set);
+                    .getBalance(player.getUniqueId(), (bal) -> balance.set(bal.intValue()));
             return (balance.get())+"";
         }
         return null;
