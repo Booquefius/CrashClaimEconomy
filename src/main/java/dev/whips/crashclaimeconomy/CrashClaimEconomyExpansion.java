@@ -26,12 +26,16 @@ public class CrashClaimEconomyExpansion extends PlaceholderExpansion {
     @Override
     public String onPlaceholderRequest(Player player, @NotNull String params) {
         if (params.equalsIgnoreCase("balance")){
-            AtomicReference<Integer> balance = new AtomicReference<>(0);
+
             CrashClaimEconomy.getInstance()
                     .getEconomyManager()
                     .getProvider()
-                    .getBalance(player.getUniqueId(), (bal) -> balance.set(bal.intValue()));
-            return (balance.get())+"";
+                    .getBalance(player.getUniqueId(), bal -> {
+                        CrashClaimEconomy.getInstance().getEconomyManager().getClaimBlockCache().put(player.getUniqueId(), bal.intValue());
+                    });
+
+            return CrashClaimEconomy.getInstance().getEconomyManager().getClaimBlockCache().get(player.getUniqueId())+"";
+
         }
         return null;
     }

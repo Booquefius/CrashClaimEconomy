@@ -6,10 +6,14 @@ import net.crashcraft.crashpayment.CrashPayment;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.ServicePriority;
 
+import java.util.HashMap;
+import java.util.UUID;
+
 public class EconomyManager {
     private final CrashClaimEconomy crashClaimEconomy;
     private final CrashPayment paymentPlugin;
     private final ClaimBlockProvider claimBlockProvider;
+    private final HashMap<UUID, Integer> claimBlockCache = new HashMap<>();
 
     public EconomyManager(CrashClaimEconomy crashClaimEconomy){
         this.crashClaimEconomy = crashClaimEconomy;
@@ -32,5 +36,9 @@ public class EconomyManager {
 
     public ClaimBlockProvider getProvider() {
         return claimBlockProvider;
+    }
+
+    public HashMap<UUID, Integer> getClaimBlockCache() {
+        return claimBlockCache;
     }
 }
