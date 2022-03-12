@@ -1,11 +1,10 @@
 package dev.whips.crashclaimeconomy.compatability.versions;
-
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.utility.MinecraftVersion;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import com.google.common.primitives.Ints;
 import dev.whips.crashclaimeconomy.compatability.CompatibilityManager;
 import dev.whips.crashclaimeconomy.compatability.CompatibilityWrapper;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -17,27 +16,35 @@ import org.bukkit.entity.Player;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("Duplicates")
-public class Wrapper1_16 implements CompatibilityWrapper {
+public class Wrapper1_17_0 implements CompatibilityWrapper {
     @Override
     public void sendActionBarTitle(Player player, BaseComponent[] message, int fade_in, int duration, int fade_out) {
-        PacketContainer packet = CompatibilityManager.getProtocolManager().createPacket(PacketType.Play.Server.TITLE);
+        PacketContainer packet = CompatibilityManager.getProtocolManager().createPacket(PacketType.Play.Server.SET_ACTION_BAR_TEXT);
 
-        packet.getTitleActions().write(0, EnumWrappers.TitleAction.ACTIONBAR);
         packet.getChatComponents().write(0, WrappedChatComponent.fromJson(ComponentSerializer.toString(message)));
-        packet.getIntegers().write(0, fade_in);
-        packet.getIntegers().write(1, duration);
-        packet.getIntegers().write(2, fade_out);
+
+        PacketContainer packetDelay = CompatibilityManager.getProtocolManager().createPacket(PacketType.Play.Server.SET_TITLES_ANIMATION);
+
+        packetDelay.getIntegers().write(0, fade_in);
+        packetDelay.getIntegers().write(1, duration);
+        packetDelay.getIntegers().write(2, fade_out);
 
         try {
             CompatibilityManager.getProtocolManager().sendServerPacket(player, packet);
+            CompatibilityManager.getProtocolManager().sendServerPacket(player, packetDelay);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         }
     }
+
     @Override
     public void spawnGlowingInvisibleMagmaSlime(Player player, double x, double z, double y, int id, UUID uuid,
                                                 HashMap<Integer, String> fakeEntities, HashMap<Integer, Location> entityLocations) {
@@ -45,7 +52,7 @@ public class Wrapper1_16 implements CompatibilityWrapper {
 
         packet.getIntegers()
                 .write(0, id)
-                .write(1, 44);//38  //Entity id //1.14: 40 //1.15: 41
+                .write(1, 48);//38  //Entity id //1.14: 40 //1.15: 41
         packet.getUUIDs()
                 .write(0, uuid);
         packet.getDoubles() //Cords
@@ -58,7 +65,7 @@ public class Wrapper1_16 implements CompatibilityWrapper {
         WrappedDataWatcher watcher = new WrappedDataWatcher();
 
         watcher.setObject(0, CompatibilityManager.getByteSerializer(), (byte) (0x20 | 0x40)); // Glowing Invisible
-        watcher.setObject(15, CompatibilityManager.getIntegerSerializer(), 2); //Slime size : 12
+        watcher.setObject(16, CompatibilityManager.getIntegerSerializer(), 2); //Slime size : 12
 
         metaDataPacket.getIntegers()
                 .write(0, id);
@@ -78,22 +85,25 @@ public class Wrapper1_16 implements CompatibilityWrapper {
 
     @Override
     public void removeEntity(Player player, Set<Integer> entity_ids){
-        PacketContainer packet = CompatibilityManager.getProtocolManager().createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+        for (int id : entity_ids) {
+            PacketContainer packet = CompatibilityManager.getProtocolManager().createPacket(
+                    new PacketType(PacketType.Protocol.PLAY, PacketType.Sender.SERVER, 0x3A, MinecraftVersion.getCurrentVersion(), "DestroyEntity"));
 
-        packet.getIntegerArrays()
-                .write(0, Ints.toArray(entity_ids));
+            packet.getIntegers()
+                    .write(0, id);
 
-        try {
-            CompatibilityManager.getProtocolManager().sendServerPacket(player, packet);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            try {
+                CompatibilityManager.getProtocolManager().sendServerPacket(player, packet);
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     @Override
     public void setEntityTeam(Player player, String team, List<String> uuids){
         PacketContainer packet = CompatibilityManager.getProtocolManager().createPacket(PacketType.Play.Server.SCOREBOARD_TEAM);
-
+        
         packet.getStrings()
                 .write(0, team);   //Team name
         packet.getIntegers().write(0, 3);   //Packet option - 3: update team
@@ -108,33 +118,39 @@ public class Wrapper1_16 implements CompatibilityWrapper {
         }
     }
 
+    private static boolean tempFix = true;
+
     @Override
     public boolean isInteractAndMainHand(PacketContainer packet) {
-        return packet.getEntityUseActions().read(0).equals(EnumWrappers.EntityUseAction.INTERACT_AT) &&
-                packet.getHands().read(0).equals(EnumWrappers.Hand.MAIN_HAND);
+        if (!packet.getEnumEntityUseActions().read(0).getAction().equals(EnumWrappers.EntityUseAction.INTERACT_AT)){
+            return false;
+        }
+
+        //return packet.getHands().read(0).equals(EnumWrappers.Hand.MAIN_HAND); TODO fix this when protocol lib updates
+
+        //below is nasty fix
+        if (tempFix){
+            tempFix = false;
+            return true;
+        } else {
+            tempFix = true;
+        }
+
+        return false;
     }
 
     @Override
     public int getMinWorldHeight(World world) {
-        return 0;
+        return world.getMinHeight();
     }
 
     private AtomicInteger ENTITY_ID;
-    private String NMS;
-
-    public Class<?> getNMSClass(final String className) throws ClassNotFoundException {
-        return Class.forName(NMS + className);
-    }
 
     @Override
     public int getUniqueEntityID() {
         if (ENTITY_ID == null){
-            final String packageName = Bukkit.getServer().getClass().getPackage().getName();
-            final String SERVER_VERSION = packageName.substring(packageName.lastIndexOf('.') + 1);
-            NMS = "net.minecraft.server." + SERVER_VERSION + ".";
-
             try {
-                final Field entityCount = getNMSClass("Entity").getDeclaredField("entityCount");
+                final Field entityCount = Class.forName("net.minecraft.world.entity.Entity").getDeclaredField("b");
                 entityCount.setAccessible(true);
                 ENTITY_ID = (AtomicInteger) entityCount.get(null);
             } catch (final ReflectiveOperationException e) {

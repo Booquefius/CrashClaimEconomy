@@ -31,7 +31,9 @@ public class CompatibilityManager {
             Wrapper1_16_5.class,
             Wrapper1_17.class,
             Wrapper1_17_1.class,
-            Wrapper1_18_1.class
+            Wrapper1_18_0.class,
+            Wrapper1_18_1.class,
+            Wrapper1_18_2.class
     );
 
     public CompatibilityManager(ProtocolManager manager){

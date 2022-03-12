@@ -2,7 +2,7 @@ name: ${project.name}
 version: ${project.version}
 description: A modern advanced user oriented claiming system
 author: Chasewhip
-depend: [ProtocolLib, CrashPayment]
+depend: [ProtocolLib, CrashPayment, CrashClaim]
 softdepend: [PlaceholderAPI]
 main: dev.whips.crashclaimeconomy.CrashClaimEconomy
 api-version: 1.16
