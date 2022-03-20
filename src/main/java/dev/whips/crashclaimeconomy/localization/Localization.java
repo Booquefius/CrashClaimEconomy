@@ -4,11 +4,17 @@ import dev.whips.crashclaimeconomy.CrashClaimEconomy;
 import dev.whips.crashclaimeconomy.config.BaseConfig;
 import dev.whips.crashclaimeconomy.config.ConfigManager;
 import dev.whips.crashclaimeconomy.config.GlobalConfig;
+import io.papermc.lib.PaperLib;
+import net.kyori.adventure.platform.bukkit.BukkitComponentSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -44,7 +50,7 @@ public enum Localization {
     }
 
     public static BaseComponent[] parseRawUserInput(String s){
-        return BungeeComponentSerializer.get().serialize(LocalizationLoader.userParser.parse(s));
+        return BungeeComponentSerializer.get().serialize(LocalizationLoader.userParser.deserialize(s));
     }
 
     public static void rebuildCachedMessages(){
@@ -113,12 +119,14 @@ public enum Localization {
         private static ItemStackTemplate createItemStack(String key, ItemStackTemplate template){
             String title = getString(key + ".title", template.getTitle());
             List<String> lore = getStringList(key + ".lore", template.getLore());
+            int model = config.getInt(key + ".model");
 
             return new ItemStackTemplate(
                     template.getMaterial() != null ? getMaterial(key + ".type", template.getMaterial()) : Material.PAPER, // Usually gets replaced
                     getInt(key + ".count", template.getStackSize()),
                     title,
                     lore,
+                    model == 0 ? null : model,
                     itemHasPlaceholders(title, lore)
             );
         }
@@ -127,6 +135,14 @@ public enum Localization {
     private static boolean itemHasPlaceholders(String title, List<String> lore){
         return LocalizationLoader.placeholderManager.hasPlaceholders(title)
                 || LocalizationLoader.placeholderManager.hasPlaceholders(lore.toArray(new String[0]));
+    }
+
+    private static TagResolver generateTagResolver(String... replace){
+        TagResolver.Builder builder = TagResolver.builder();
+        for (int x = 0; x < replace.length - 1; x+=2){
+            builder.resolver(Placeholder.parsed(replace[x], replace[x + 1]));
+        }
+        return builder.build();
     }
 
     private enum localizationType {
@@ -171,7 +187,7 @@ public enum Localization {
         this.defList = null;
         this.type = localizationType.ITEM;
 
-        this.item = new ItemStackTemplate(material, stackSize, title, Arrays.asList(loreDef), false);
+        this.item = new ItemStackTemplate(material, stackSize, title, Arrays.asList(loreDef), null, false);
     }
 
     public BaseComponent[] getMessage(Player player) {
@@ -183,9 +199,9 @@ public enum Localization {
 
     public BaseComponent[] getMessage(Player player, String... replace){
         if (hasPlaceholders){
-            return BungeeComponentSerializer.get().serialize(LocalizationLoader.parser.parse(LocalizationLoader.placeholderManager.usePlaceholders(player, def), replace));
+            return BungeeComponentSerializer.get().serialize(LocalizationLoader.parser.deserialize(LocalizationLoader.placeholderManager.usePlaceholders(player, def), generateTagResolver(replace)));
         }
-        return BungeeComponentSerializer.get().serialize(LocalizationLoader.parser.parse(def, replace));
+        return BungeeComponentSerializer.get().serialize(LocalizationLoader.parser.deserialize(def, generateTagResolver(replace)));
     }
 
     public List<BaseComponent[]> getMessageList(Player player) {
@@ -200,12 +216,12 @@ public enum Localization {
 
         if (hasPlaceholders){
             for (String line : defList) {
-                Collections.addAll(arr, BungeeComponentSerializer.get().serialize(LocalizationLoader.parser.parse(
-                        LocalizationLoader.placeholderManager.usePlaceholders(player, line), replace)));
+                Collections.addAll(arr, BungeeComponentSerializer.get().serialize(LocalizationLoader.parser.deserialize(
+                        LocalizationLoader.placeholderManager.usePlaceholders(player, line), generateTagResolver(replace))));
             }
         } else {
             for (String line : defList) {
-                Collections.addAll(arr, BungeeComponentSerializer.get().serialize(LocalizationLoader.parser.parse(line, replace)));
+                Collections.addAll(arr, BungeeComponentSerializer.get().serialize(LocalizationLoader.parser.deserialize(line, generateTagResolver(replace))));
             }
         }
 
@@ -232,20 +248,22 @@ public enum Localization {
         this.item = item;
     }
 
-    protected static class ItemStackTemplate {
+    public static class ItemStackTemplate {
         private final Material material;
         private final int stackSize;
         private final String title;
         private final List<String> lore;
         private final boolean hasPlaceholders;
+        private final Integer model;
 
         private final ItemStack staticItemStack;
 
-        public ItemStackTemplate(Material material, int stackSize, String title, List<String> lore, boolean hasPlaceholders) {
+        public ItemStackTemplate(Material material, int stackSize, String title, List<String> lore, Integer model, boolean hasPlaceholders) {
             this.material = material;
             this.stackSize = stackSize;
             this.title = title;
             this.lore = lore;
+            this.model = model;
             this.hasPlaceholders = hasPlaceholders;
 
             this.staticItemStack = build(null, new String[0]);
@@ -256,6 +274,7 @@ public enum Localization {
             this.stackSize = 0;
             this.title = null;
             this.lore = null;
+            this.model = null;
             this.hasPlaceholders = false; // Cant have placeholders for these items.
 
             this.staticItemStack = itemStack;
@@ -278,16 +297,36 @@ public enum Localization {
             ItemMeta iMeta = item.getItemMeta();
 
             String newTitle = hasPlaceholders ? LocalizationLoader.placeholderManager.usePlaceholders(player, title) : title;
-            iMeta.setDisplayNameComponent(BungeeComponentSerializer.get().serialize(
-                    Component.empty().decoration(TextDecoration.ITALIC, false).append(LocalizationLoader.parser.parse(newTitle, replace))));
+            iMeta.setDisplayName(BukkitComponentSerializer.legacy().serialize(Component.empty().decoration(TextDecoration.ITALIC, false).append(LocalizationLoader.parser.deserialize(newTitle, generateTagResolver(replace)))));
 
-            List<BaseComponent[]> components = new ArrayList<>(lore.size());
-            for (String line : lore) {
-                components.add(BungeeComponentSerializer.get().serialize(
-                        Component.empty().decoration(TextDecoration.ITALIC, false).append(LocalizationLoader.parser.parse(
-                                hasPlaceholders ? LocalizationLoader.placeholderManager.usePlaceholders(player, line) : line, replace))));
+            if (PaperLib.isPaper()){
+                List<Component> components = new ArrayList<>(lore.size());
+                for (String line : lore) {
+                    components.add(
+                            Component.empty().decoration(TextDecoration.ITALIC, false).append(LocalizationLoader.parser.deserialize(
+                                    hasPlaceholders ? LocalizationLoader.placeholderManager.usePlaceholders(player, line) : line, generateTagResolver(replace)))
+                    );
+                }
+
+                iMeta.lore(components);
+            } else {
+                List<String> components = new ArrayList<>(lore.size());
+
+                LegacyComponentSerializer serializer = LegacyComponentSerializer.builder().build();
+                for (String line : lore) {
+                    components.add(
+                            serializer.serialize(
+                                    Component.empty().decoration(TextDecoration.ITALIC, false).append(LocalizationLoader.parser.deserialize(
+                                            hasPlaceholders ? LocalizationLoader.placeholderManager.usePlaceholders(player, line) : line, generateTagResolver(replace))))
+                    );
+                }
+
+                iMeta.setLore(components);
             }
-            iMeta.setLoreComponents(components);
+
+            if (model != null){
+                iMeta.setCustomModelData(model); // Set custom model data.
+            }
 
             item.setItemMeta(iMeta);
 
@@ -327,7 +366,7 @@ public enum Localization {
         this.messageList = messageList;
     }
 
-    private ItemStackTemplate getItemTemplate() {
+    public ItemStackTemplate getItemTemplate() {
         return item;
     }
 
