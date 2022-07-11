@@ -8,7 +8,7 @@
 
     <groupId>dev.whips</groupId>
     <artifactId>CrashClaimEconomy</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -195,7 +195,7 @@
         <dependency>
             <groupId>dev.whip</groupId>
             <artifactId>CrashUtils</artifactId>
-            <version>1.5</version>
+            <version>1.6.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
