@@ -1,6 +1,8 @@
 .idea/
-CrashCore.iml
+.gradle/
+.settings/
 Server/
+build/
 target/
-/WhipClaim.iml
-CrashClaimEconomy.iml
+bin/
+libs/
