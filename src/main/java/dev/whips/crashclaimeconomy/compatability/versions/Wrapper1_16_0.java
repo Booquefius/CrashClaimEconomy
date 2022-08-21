@@ -24,10 +24,6 @@ public class Wrapper1_16_0 implements CompatibilityWrapper {
         packet.getIntegers().write(1, duration);
         packet.getIntegers().write(2, fade_out);
 
-        try {
-            CompatibilityManager.getProtocolManager().sendServerPacket(player, packet);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        CompatibilityManager.getProtocolManager().sendServerPacket(player, packet);
     }
 }
