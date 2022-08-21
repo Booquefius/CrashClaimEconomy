@@ -3,6 +3,7 @@ package dev.whips.crashclaimeconomy.config;
 public class GlobalConfig extends BaseConfig{
     public static String locale;
     public static int initialClaimBlocks;
+    public static int maxClaimBlocks;
     public static int claimBlockReward;
     public static int claimBlockRewardMillis;
 
@@ -19,6 +20,7 @@ public class GlobalConfig extends BaseConfig{
         locale = getString("language", "en_US");
 
         initialClaimBlocks = getInt("initial-claimblocks", 100);
+        maxClaimBlocks = getInt("max-claimblocks", 5000);
 
         claimBlockReward = getInt("reward", 25);
         claimBlockRewardMillis = getInt("reward-minutes", 60) * 60 * 1000;

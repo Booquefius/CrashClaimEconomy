@@ -30,7 +30,21 @@ public class RewardManager implements Listener {
                 UUID uuid = player.getUniqueId();
                 Long time = timeSinceReward.get(uuid);
 
-                if (time == null){
+                if (time == null) {
+                    continue;
+                }
+
+                int balance = getBalance(uuid);
+
+                if (balance + GlobalConfig.claimBlockReward >= GlobalConfig.maxClaimBlocks) {
+                    if (GlobalConfig.maxClaimBlocks > balance) {
+                        player.sendMessage(Localization.ALERT__MAX_BLOCKS.getMessage(player,
+                            "max-balance", Integer.toString(GlobalConfig.maxClaimBlocks)));
+
+                        giveReward(player, GlobalConfig.maxClaimBlocks - balance);
+                        continue;
+                    }
+
                     continue;
                 }
 
@@ -45,25 +59,37 @@ public class RewardManager implements Listener {
     }
 
     public void giveReward(Player player){
-        provider.makeTransaction(player.getUniqueId(), TransactionType.DEPOSIT, "Reward", GlobalConfig.claimBlockReward, (transactionRecipe -> {
+        giveReward(player, GlobalConfig.claimBlockReward);
+    }
+
+    public void giveReward(Player player, int amount){
+        provider.makeTransaction(player.getUniqueId(), TransactionType.DEPOSIT, "Reward", amount, (transactionRecipe -> {
             if (transactionRecipe.transactionSuccess()){
                 if (GlobalConfig.sendInChatInstead){
                     player.sendMessage(Localization.ALERT__CHAT.getMessage(player,
-                            "reward", Integer.toString(GlobalConfig.claimBlockReward)));
+                        "reward", Integer.toString(amount)));
                 } else {
                     CrashClaimEconomy.getInstance().getCompatibilityManager().getWrapper().sendActionBarTitle(
-                            player,
-                            Localization.ALERT__ACTIONBAR.getMessage(player,
-                                    "reward", Integer.toString(GlobalConfig.claimBlockReward)),
-                            GlobalConfig.alertFadeIn,
-                            GlobalConfig.alertDuration,
-                            GlobalConfig.alertFadeOut
+                        player,
+                        Localization.ALERT__ACTIONBAR.getMessage(player,
+                            "reward", Integer.toString(amount)),
+                        GlobalConfig.alertFadeIn,
+                        GlobalConfig.alertDuration,
+                        GlobalConfig.alertFadeOut
                     );
                 }
             } else {
                 player.sendMessage(transactionRecipe.getTransactionError());
             }
         }));
+    }
+
+    public int getBalance(UUID uuid) {
+        try {
+            return DB.getFirstColumn("SELECT amount FROM claimblocks WHERE player_id = (SELECT id FROM players WHERE uuid = ?)", uuid.toString());
+        } catch (Exception ex) {
+            return 0;
+        }
     }
 
     @EventHandler (priority = EventPriority.MONITOR, ignoreCancelled = true)
