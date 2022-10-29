@@ -25,11 +25,7 @@ public class Wrapper1_17_0 implements CompatibilityWrapper {
         packetDelay.getIntegers().write(1, duration);
         packetDelay.getIntegers().write(2, fade_out);
 
-        try {
-            CompatibilityManager.getProtocolManager().sendServerPacket(player, packet);
-            CompatibilityManager.getProtocolManager().sendServerPacket(player, packetDelay);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        CompatibilityManager.getProtocolManager().sendServerPacket(player, packet);
+        CompatibilityManager.getProtocolManager().sendServerPacket(player, packetDelay);
     }
 }
