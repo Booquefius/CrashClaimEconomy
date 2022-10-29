@@ -14,7 +14,6 @@ import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -29,13 +28,14 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public enum Localization {
-    ECONOMY__CHECK_SELF_BALANCE("<gold>ClaimBlock Balance: <yellow><balance>"),
-    ECONOMY__CHECK_OTHER_BALANCE("<gold>ClaimBlock Balance for <green><username><gold>: <yellow><balance>"),
+    ECONOMY__CHECK_SELF_BALANCE("<gold>ClaimBlock Balance: <yellow><balance>/<max-balance>"),
+    ECONOMY__CHECK_OTHER_BALANCE("<gold>ClaimBlock Balance for <green><username><gold>: <yellow><balance>/<max-balance>"),
     ECONOMY__ADD_OTHER("<green>Successfully added <yellow><balance> <green>ClaimBlocks to <gold><username>"),
     ECONOMY__ADD_OTHER_ERROR("<red>Failed to add <yellow><balance> <red>ClaimBlocks to <gold><username><red> reason: <error>"),
     ECONOMY__REMOVE_OTHER("<green>Successfully removed <yellow><balance> <green>ClaimBlocks from <gold><username>"),
     ECONOMY__REMOVE_OTHER_ERROR("<red>Failed to remove <yellow><balance> <red>ClaimBlocks from <gold><username><red> reason: <error>"),
 
+    ALERT__MAX_BLOCKS("<gold>You have reached the ClaimBlock limit of <yellow><max-balance>"),
     ALERT__CHAT("<yellow><bold>+<reward></bold> ClaimBlocks Rewarded"),
     ALERT__ACTIONBAR("<yellow><bold>+<reward></bold> ClaimBlocks Rewarded"),
     ;

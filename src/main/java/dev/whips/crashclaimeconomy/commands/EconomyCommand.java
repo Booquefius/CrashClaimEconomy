@@ -2,6 +2,7 @@ package dev.whips.crashclaimeconomy.commands;
 
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.*;
+import dev.whips.crashclaimeconomy.config.GlobalConfig;
 import dev.whips.crashclaimeconomy.localization.Localization;
 import net.crashcraft.crashpayment.payment.PaymentProcessor;
 import net.crashcraft.crashpayment.payment.TransactionType;
@@ -22,7 +23,8 @@ public class EconomyCommand extends BaseCommand {
     public void onBalance(Player player){
         provider.getBalance(player.getUniqueId(), (bal) -> {
             player.sendMessage(Localization.ECONOMY__CHECK_SELF_BALANCE.getMessage(player,
-                    "balance", Integer.toString(bal.intValue())));
+                        "balance", Integer.toString(bal.intValue()),
+                        "max-balance", Integer.toString(GlobalConfig.maxClaimBlocks)));
         });
     }
 
@@ -32,8 +34,9 @@ public class EconomyCommand extends BaseCommand {
     public void onBalance(CommandSender sender, OfflinePlayer player){
         provider.getBalance(player.getUniqueId(), (bal) -> {
             sender.sendMessage(Localization.ECONOMY__CHECK_OTHER_BALANCE.getMessage(null,
-                    "username", player.getName(),
-                    "balance", Integer.toString(bal.intValue())));
+                        "username", player.getName(),
+                        "balance", Integer.toString(bal.intValue()),
+                        "max-balance", Integer.toString(GlobalConfig.maxClaimBlocks)));
         });
     }
 
