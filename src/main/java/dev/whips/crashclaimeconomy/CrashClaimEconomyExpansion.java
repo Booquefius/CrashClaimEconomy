@@ -23,6 +23,11 @@ public class CrashClaimEconomyExpansion extends PlaceholderExpansion {
     public @NotNull String getVersion() {
         return "1.0";
     }
+    
+    @Override
+    public boolean persist() {
+        return true;
+    }
 
     @Override
     public String onPlaceholderRequest(Player player, @NotNull String params) {
